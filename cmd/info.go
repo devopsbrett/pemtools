@@ -15,15 +15,11 @@
 package cmd
 
 import (
-	"encoding/pem"
-	"fmt"
-	"io/ioutil"
 	"log"
 
-	"github.com/alexeyco/simpletable"
 	"github.com/davecgh/go-spew/spew"
-	"github.com/devopsbrett/pemtools/cacert"
 	"github.com/spf13/cobra"
+	"crypto/x509"
 )
 
 // splitCmd represents the split command
@@ -38,65 +34,11 @@ Cobra is a CLI library for Go that empowers applications.
 This application is a tool to generate the needed files
 to quickly create a Cobra application.`,
 	Run: func(cmd *cobra.Command, args []string) {
-		filename := args[0]
-
-		certPEMBlock, err := ioutil.ReadFile(filename)
+		systemRoots, err := x509.SystemCertPool()
 		if err != nil {
 			log.Fatal(err)
 		}
-		table := simpletable.New()
-		table.Header = &simpletable.Header{
-			Cells: []*simpletable.Cell{
-				{Align: simpletable.AlignCenter, Text: "CN"},
-				{Align: simpletable.AlignCenter, Text: "Issuer"},
-				{Align: simpletable.AlignCenter, Text: "Expires"},
-			},
-		}
-		// var blocks [][]byte
-		var row []*simpletable.Cell
-		emptyCerts := make([]string, 0)
-		expiredCerts := 0
-		for {
-			var certDERBlock *pem.Block
-			certDERBlock, certPEMBlock = pem.Decode(certPEMBlock)
-			if certDERBlock == nil {
-				break
-			}
-			cert, err := cacert.ParseDER(certDERBlock.Bytes)
-			if err != nil {
-				log.Println(err)
-				continue
-			}
-			if cert.Expired() {
-				expiredCerts++
-			}
-			spew.Dump(string(cert.Certificate.RawSubject))
-			spew.Dump(string(cert.Certificate.RawIssuer))
-			// if certName = cert.Subject.CommonName; certName == "" {
-			// 	certName = cert.Subject.String()
-			// 	emptyCerts = append(emptyCerts, spew.Sdump(cert))
-			// }
-
-			// fmt.Println(cert.Issuer.ToRDNSequence())
-
-			row = []*simpletable.Cell{
-				{Text: formatText(cert.DisplayName, cert.Invalid)},
-				{Text: formatText(cert.Certificate.Issuer.CommonName, cert.Invalid)},
-				{Text: formatText(cert.Certificate.NotAfter.String(), cert.Invalid)},
-			}
-			table.Body.Cells = append(table.Body.Cells, row)
-
-			//fmt.Println(certDERBlock.Type)
-		}
-		// table.SetStyle(simpletable.StyleCompactLite)
-
-		fmt.Println(table.String())
-		fmt.Printf("Bundle contained %d expired certs\n", expiredCerts)
-		fmt.Printf("Printing %d certificates we got no common name for.\n", len(emptyCerts))
-		// for _, c := range emptyCerts {
-		// 	fmt.Println(c)
-		// }
-
+		spew.Dump(systemRoots)
 	},
 }
 

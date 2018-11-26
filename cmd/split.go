@@ -18,7 +18,7 @@ import (
 	"log"
 	"os"
 
-	"github.com/devopsbrett/pemtools/certbundle"
+	"github.com/devopsbrett/pemtools"
 	"github.com/spf13/cobra"
 )
 
@@ -62,16 +62,25 @@ to quickly create a Cobra application.`,
 			}
 		}
 
-		cabundle, err := certbundle.BundleFromFile(filename)
+		pool, err := pemtools.NewCARootsPoolFromFile(filename)
 
 		if err != nil {
 			log.Fatal(err)
 		}
 
-		err = cabundle.OutputPEMFiles(outputDir, expiredDir)
-		if err != nil {
-			log.Fatal(err)
-		}
+		// spew.Dump(pool)
+		pool.DebugOut()
+
+		// fmt.Println("Blah Blah Blah")
+
+		// pool.DebugOut()
+		// spew.Dump(pool)
+		//fmt.Println(len(pool))
+
+		//err = cabundle.OutputPEMFiles(outputDir, expiredDir)
+		//if err != nil {
+		//	log.Fatal(err)
+		//}
 		// table.SetStyle(simpletable.StyleCompactLite)
 
 	},
